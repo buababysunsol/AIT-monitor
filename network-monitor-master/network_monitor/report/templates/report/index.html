@@ -1,0 +1,50 @@
+{% extends 'discover/base.html' %}
+{% block title %}Report{% endblock %}
+{% block navbar %}{% with active_tab='report' %}{{ block.super }}{% endwith %}{% endblock %}
+{% block content %}
+  <!-- Dashboard Counts Section-->
+  <section class="dashboard-counts no-padding" id="app">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-lg-12">
+          <div class="card">
+            <div class="card-header">
+                Reports
+            </div>
+            <div class="card-body">
+              <table class="table table-sm table-striped">
+                <thead>
+                <tr>
+                  <th>Report title</th>
+                  <th>Description</th>
+                  <th>Category</th>
+                </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><a href="{% url 'report-link-new' %}">Link status</a></td>
+                    <td>Show link status up/down</td>
+                    <td>Node</td>
+                  </tr>
+                  <tr>
+                    <td><a href="{% url 'report-node-updown' %}">Node downtime</a></td>
+                    <td>Show Node downtime</td>
+                    <td>Node</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock %}
+{% block script %}
+  <script>
+      $(document).ready(function () {
+          $('input[name="start_time"]').flatpickr()
+          $('input[name="end_time"]').flatpickr()
+      })
+  </script>
+{% endblock %}

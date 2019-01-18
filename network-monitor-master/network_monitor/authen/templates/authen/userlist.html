@@ -1,0 +1,89 @@
+{% extends 'discover/base.html' %}
+{% block title %}User list{% endblock %}
+{% block page_header %}User list{% endblock %}
+{% block navbar %}{% with active_tab='account' %}{{ block.super }}{% endwith %}{% endblock %}
+{% block content %}
+  <section class="dashboard-counts no-padding" id="app">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-sm-12">
+          <div class="card">
+            <div class="card-header">
+              <a href="{% url 'register' %}" class="btn btn-info">Create a new user</a>
+            </div>
+            <div class="card-body">
+              <table class="table">
+                <thead>
+                <tr>
+                  <th>UID</th>
+                  <th>Username</th>
+                  <th>Email</th>
+                  <th>Name</th>
+                  <th>Is Superuser</th>
+                  <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for user in users %}
+                  <tr>
+                    <td data-userid>{{ user.id }}</td>
+                    <td data-username>{{ user.username }}</td>
+                    <td data-email>{{ user.email }}</td>
+                    <td data-firstname>{{ user.first_name }} {{ user.last_name }}</td>
+                    <td data-lastname>{{ user.is_superuser }}</td>
+                    <td><span class="remove-btn badge badge-danger">Remove</span></td>
+                  </tr>
+                {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <div class="modal fade" id="remove-user" tabindex="-1" role="dialog"
+       aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <form id="remove-user-form" action="{% url 'remove-user' %}" method="post">
+          {% csrf_token %}
+          <input type="hidden" name="user_id" id="user-id">
+          <div class="modal-header">
+            <h5 class="modal-title" id="deleteModalLabel">Confirm</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body text-center">
+            Are you sure?<br/>
+            You won't be able to revert this!<br/>
+            Yes, delete it!
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Yes, delete it!</button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+{% endblock %}
+{% block script %}
+  <script>
+    $(document).ready(function () {
+      const removeForm = $("#remove-user-form");
+      $('.remove-btn').click(function (event) {
+        $('#remove-user').modal('toggle')
+
+        const tr = $(this).parents("tr");
+        console.log(tr);
+        const userid = tr.find("td[data-userid]").first().html();
+        const username = tr.find("td[data-username]").first().html();
+
+        $('#user-id').val(userid);
+      })
+    })
+  </script>
+{% endblock %}

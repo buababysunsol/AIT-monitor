@@ -1,0 +1,325 @@
+{% extends 'discover/base.html' %}
+{% block navbar %}{% with active_tab='setting' %}{{ block.super }}{% endwith %}{% endblock %}
+{% block content %}
+  <!-- Dashboard Counts Section-->
+  <section class="dashboard-counts no-padding" id="app">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-lg-12">
+          <div class="card">
+            <form class="" method="post">
+              {% csrf_token %}
+              <div class="card-header"><h4>Settings</h4></div>
+              <div class="card-body">
+                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                  <li class="nav-item">
+                    <a class="nav-link active" id="home-tab" data-toggle="tab" href="#snmp"
+                       role="tab" aria-controls="home" aria-selected="true">SNMP</a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" id="contact-tab" data-toggle="tab" href="#discover"
+                       role="tab" aria-controls="discover" aria-selected="false">Discover</a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" id="profile-tab" data-toggle="tab" href="#line"
+                       role="tab" aria-controls="profile" aria-selected="false">Line notify</a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" id="contact-tab" data-toggle="tab" href="#email"
+                       role="tab" aria-controls="contact" aria-selected="false">Email notify</a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" id="notify-tab" data-toggle="tab" href="#notify"
+                       role="tab" aria-controls="notify" aria-selected="false">Notify</a>
+                  </li>
+                </ul>
+                <div class="tab-content" id="myTabContent">
+                  <div class="tab-pane fade show active" id="snmp" role="tabpanel"
+                       aria-labelledby="home-tab">
+                    <div class="row">
+                      <div class="col-md-4">SNMP Pooling Interval<br/>
+                        <small>in seconds</small>
+                      </div>
+                      <div class="col-md-8">
+                        <div class="form-group">
+                          <input type="number" class="form-control" id="fetch_snmp_interval"
+                                 name="fetch_snmp_interval" placeholder="Interval in seconds"
+                                 value="{{ fetch_snmp_task.interval.every }}">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="tab-pane fade" id="discover" role="tabpanel"
+                       aria-labelledby="home-tab">
+                    <div class="row">
+                      <div class="col-md-4">Ping test times<br/>
+                        <small>in times</small>
+                      </div>
+                      <div class="col-md-8">
+                        <div class="form-group">
+                          <input type="number" class="form-control" id="ping_test_times"
+                                 name="ping_test_times" placeholder="Ping test times"
+                                 value="{{ settings.ping_test_times }}">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="tab-pane fade" id="line" role="tabpanel"
+                       aria-labelledby="profile-tab">
+                    <div class="row">
+                      <div class="col-md-4">Line notify token
+                      </div>
+                      <div class="col-md-8">
+                        <div class="form-group">
+                          <input type="text" class="form-control" id="line_notify_token"
+                                 name="line_notify_token" placeholder="Line notify token"
+                                 value="{{ settings.line_notify_token }}">
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-md-4">Line notify message
+                      </div>
+                      <div class="col-md-8">
+                        <div class="form-group">
+                          <input type="text" class="form-control" id="line_notify_message"
+                                 name="line_notify_message" placeholder="Line notify message"
+                                 value="{{ settings.line_notify_message }}">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="tab-pane fade" id="email" role="tabpanel"
+                       aria-labelledby="contact-tab">
+                    <div class="row">
+                      <div class="col-md-4">Email to notify
+                      </div>
+                      <div class="col-md-8">
+                        <div class="form-group">
+                          <input type="text" class="form-control" id="email_notify_to"
+                                 name="email_notify_to"
+                                 placeholder="Email notify to (yourname@email.com)"
+                                 value="{{ settings.email_notify_to }}">
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-md-4">Email notify header
+                      </div>
+                      <div class="col-md-8">
+                        <div class="form-group">
+                          <input type="text" class="form-control" id="email_notify_header"
+                                 name="email_notify_header"
+                                 placeholder="Email notify header"
+                                 value="{{ settings.email_notify_header }}">
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-md-4">Email notify message
+                      </div>
+                      <div class="col-md-8">
+                        <div class="form-group">
+                          <input type="text" class="form-control" id="email_notify_message"
+                                 name="email_notify_message"
+                                 placeholder="Email notify message"
+                                 value="{{ settings.email_notify_message }}">
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="row">
+                      <div class="col-md-4">SMTP Email
+                      </div>
+                      <div class="col-md-8">
+                        <div class="form-group">
+                          <input type="text" class="form-control" id="smtp_email"
+                                 name="smtp_email" placeholder="SMTP Email"
+                                 value="{{ settings.smtp_email }}">
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-md-4">SMTP Host
+                      </div>
+                      <div class="col-md-8">
+                        <div class="form-group">
+                          <input type="text" class="form-control" id="smtp_host"
+                                 name="smtp_host" placeholder="SMTP Host"
+                                 value="{{ settings.smtp_host }}">
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-md-4">SMTP Port
+                      </div>
+                      <div class="col-md-8">
+                        <div class="form-group">
+                          <input type="text" class="form-control" id="smtp_port"
+                                 name="smtp_port" placeholder="SMTP Port"
+                                 value="{{ settings.smtp_port }}">
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-md-4">SMTP Username
+                      </div>
+                      <div class="col-md-8">
+                        <div class="form-group">
+                          <input type="text" class="form-control" id="smtp_username"
+                                 name="smtp_username" placeholder="SMTP Username"
+                                 value="{{ settings.smtp_username }}">
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-md-4">SMTP Password
+                      </div>
+                      <div class="col-md-8">
+                        <div class="form-group">
+                          <input type="password" class="form-control" id="smtp_password"
+                                 name="smtp_password" placeholder="SMTP Password">
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-md-4">SMTP Use TLS
+                      </div>
+                      <div class="col-md-8">
+                        <div class="form-group">
+                          <input type="checkbox" class="custom-control-input"
+                                 name="smtp_use_tls"
+                                 id="smtp_use_tls"
+                                 {% if settings.smtp_use_tls == 'on' %}checked{% endif %}>
+                          <label class="custom-control-label" for="smtp_use_tls">Use
+                            tls</label>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-md-4">SMTP Use SSL
+                      </div>
+                      <div class="col-md-8">
+                        <div class="form-group">
+                          <input type="checkbox" class="custom-control-input"
+                                 name="smtp_use_ssl"
+                                 id="smtp_use_ssl"
+                                 {% if settings.smtp_use_ssl == 'on' %}checked{% endif %}>
+                          <label class="custom-control-label" for="smtp_use_ssl">Use
+                            SSL</label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="tab-pane fade" id="notify" role="tabpanel"
+                       aria-labelledby="notify-tab">
+
+                    <!-- Node DOWN Email -->
+                    <div class="row no-padding-bottom">
+                      <div class="col-md-4">Node DOWN E-mail header
+                      </div>
+                      <div class="col-md-8">
+                        <div class="form-group">
+                          <input type="text" class="form-control" id="email_node_down_notify_header"
+                                 name="email_node_down_notify_header" placeholder="Node DOWN E-mail header"
+                                 value="{{ settings.email_node_down_notify_header }}">
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row no-padding-bottom no-padding-top">
+                      <div class="col-md-4">Node DOWN E-mail message
+                      </div>
+                      <div class="col-md-8">
+                        <div class="form-group">
+                          <input type="text" class="form-control" id="email_node_down_notify_message"
+                                 name="email_node_down_notify_message" placeholder="Node DOWN E-mail message"
+                                 value="{{ settings.email_node_down_notify_message }}">
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row no-padding-bottom no-padding-top">
+                      <div class="col-md-4">Node DOWN LINE message
+                      </div>
+                      <div class="col-md-8">
+                        <div class="form-group">
+                          <input type="text" class="form-control" id="line_node_down_notify_message"
+                                 name="line_node_down_notify_message" placeholder="Node DOWN LINE message"
+                                 value="{{ settings.line_node_down_notify_message }}">
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Node UP Email -->
+                    <div class="row no-padding-bottom">
+                      <div class="col-md-4">Node UP E-mail header
+                      </div>
+                      <div class="col-md-8">
+                        <div class="form-group">
+                          <input type="text" class="form-control" id="email_node_up_notify_header"
+                                 name="email_node_up_notify_header" placeholder="Node UP E-mail header"
+                                 value="{{ settings.email_node_up_notify_header }}">
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row no-padding-bottom no-padding-top">
+                      <div class="col-md-4">Node UP E-mail message
+                      </div>
+                      <div class="col-md-8">
+                        <div class="form-group">
+                          <input type="text" class="form-control" id="email_node_up_notify_message"
+                                 name="email_node_up_notify_message" placeholder="Node UP E-mail message"
+                                 value="{{ settings.email_node_up_notify_message }}">
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row no-padding-bottom no-padding-top">
+                      <div class="col-md-4">Node UP LINE message
+                      </div>
+                      <div class="col-md-8">
+                        <div class="form-group">
+                          <input type="text" class="form-control" id="line_node_up_notify_message"
+                                 name="line_node_up_notify_message" placeholder="Node UP LINE message"
+                                 value="{{ settings.line_node_up_notify_message }}">
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Interface UP/DOWN Email -->
+                    <div class="row no-padding-bottom">
+                      <div class="col-md-4">Interface UP/DOWN Email header
+                      </div>
+                      <div class="col-md-8">
+                        <div class="form-group">
+                          <input type="text" class="form-control" id="email_if_updown_notify_header"
+                                 name="email_if_updown_notify_header" placeholder="Interface UP/DOWN Email header"
+                                 value="{{ settings.email_if_updown_notify_header }}">
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row no-padding-bottom">
+                      <div class="col-md-4">Interface UP/DOWN Email message
+                      </div>
+                      <div class="col-md-8">
+                        <div class="form-group">
+                          <input type="text" class="form-control" id="email_if_updown_notify_message"
+                                 name="email_if_updown_notify_message" placeholder="Interface UP/DOWN Email message"
+                                 value="{{ settings.email_if_updown_notify_message }}">
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-12 pull-right">
+                    <button type="submit" class="btn btn-primary">Update settings</button>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock %}

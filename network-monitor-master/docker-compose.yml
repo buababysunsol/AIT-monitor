@@ -1,0 +1,60 @@
+version: '3.4'
+
+volumes:
+  djangoweb:
+  mongodb:
+
+networks:
+  web:
+  database:
+
+services:
+  webapps:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: webapps
+    ports:
+      - '8000:8000'
+    env_file:
+      - web.env
+    volumes:
+      - ./network_monitor:/webapps
+    networks:
+      - web
+      - database
+
+  celery-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: celery-worker
+    env_file:
+      - web.env
+    networks:
+      - database
+    command: ["-A", "network_monitor", "worker", "-l", "info", "--concurrency=4"]
+
+  celery-beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: celery-beat
+    env_file:
+      - web.env
+    networks:
+      - database
+
+  mongodb:
+    image: mongo:4
+    ports:
+      - '27018:27017'
+    volumes:
+      - 'mongodb:/data/db'
+    networks:
+      - database
+
+  redis:
+    image: redis:4-alpine
+    networks:
+      - database

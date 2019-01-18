@@ -1,0 +1,42 @@
+<div class="form-group row">
+    <label class="col-sm-2 form-control-label">SNMP Version</label>
+    <div class="col-sm-10">
+        <div class="i-checks">
+            <input type="radio" checked="" value="v1" name="snmp_version"
+                   class="radio-template" v-model="snmpVersion">
+            <label for="radioCustom1">V1</label>
+        </div>
+        <div class="i-checks">
+            <input type="radio" value="v2c" name="snmp_version"
+                   class="radio-template" v-model="snmpVersion">
+            <label for="radioCustom2">V2c</label>
+        </div>
+        <div class="i-checks">
+            <input type="radio" value="v3" name="snmp_version"
+                   class="radio-template" v-model="snmpVersion">
+            <label for="radioCustom2">V3</label>
+        </div>
+    </div>
+</div>
+<div class="line"></div>
+<div v-if="snmpVersion === 'v2c'" class="form-group row">
+    <label class="col-sm-2 form-control-label">SNMP Community</label>
+    <div class="col-sm-10">
+        <input name="snmp_community" type="text" placeholder="Community string"
+               class="form-control" v-model="snmpCommunity">
+    </div>
+</div>
+
+<div v-if="snmpVersion === 'v3'" class="form-group row">
+    <label class="col-sm-2 form-control-label">SNMP Username & Password</label>
+    <div class="col-sm-10">
+        <div class="form-group">
+            <input name="snmp_username" type="text" placeholder="Username"
+                   class="form-control" v-model="snmpUsername">
+        </div>
+        <div class="form-group">
+            <input name="snmp_password" type="password" placeholder="Password"
+                   class="form-control" v-model="snmpPassword">
+        </div>
+    </div>
+</div>

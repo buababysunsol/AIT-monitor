@@ -1,0 +1,218 @@
+{% extends 'discover/base.html' %}
+{% block navbar %}{% with active_tab='device-list' %}{{ block.super }}{% endwith %}{% endblock %}
+{% block page_header %}Management device{% endblock %}
+{% block content %}
+  <!-- Dashboard Counts Section-->
+  <section class="dashboard-counts no-padding-bottom" id="app">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-lg-12">
+          <div class="card">
+            <div class="card-header"><h4>Device list</h4></div>
+            <div class="card-body">
+              <form method="post">
+                {% csrf_token %}
+                <button class="btn btn-primary" name="update_type" value="snmp">Update SNMP</button>
+                <button class="btn btn-danger" name="update_type" value="all">Update And Reset Toplogy</button>
+              </form>
+              <p></p>
+              <table class="table">
+                <thead>
+                <tr>
+                  <th>IP</th>
+                  <th>Sitename</th>
+                  <th>Hostname</th>
+                  <th>SNMP Info</th>
+                  <th>Ping Status</th>
+                  <th>Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr v-for="device in devices">
+                  <td class="align-middle">${device.ip_address}</td>
+                  <td class="align-middle">${device.sitename}</td>
+                  <td class="align-middle">${device.hostname}</td>
+                  <td class="align-middle"><h3>
+                    <span v-if="device.snmp_status === true" class="badge badge-success">Connect</span>
+                    <span v-else class="badge badge-danger">Not Connect</span></h3>
+                  </td>
+                  <td class="align-middle"><h3>
+                    <span v-if="device.ping_status === true" class="badge badge-success">Connect</span>
+                    <span v-else class="badge badge-danger">Not Connect</span></h3>
+                  </td>
+                  <td class="align-middle">
+                    <div class="btn-group-vertical">
+                      <button type="button" class="btn btn-primary" data-toggle="modal"
+                              data-target="#editDevice" @click="setEditDevice(device.ip_address)">
+                        <i class="fas fa-edit"></i>
+                        Edit
+                      </button>
+                      <button type="button" class="btn btn-danger" data-toggle="modal"
+                              data-target="#deleteDevice" @click="setDeleteDevice(device.id)"><i
+                        class="fas fa-trash"></i>
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal fade" id="deleteDevice" tabindex="-1" role="dialog"
+         aria-labelledby="deleteModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <form method="post" :action="getViewDeviceURL(this.deleteDeviceIDSelected)">
+            {% csrf_token %}
+            <input type="hidden" name="device_id" :value="deleteDeviceIDSelected">
+            <div class="modal-header">
+              <h5 class="modal-title" id="deleteModalLabel">Confirm</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body text-center">
+              Are you sure?<br/>
+              You won't be able to revert this!<br/>
+              Yes, delete it!
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Yes, delete it!</button>
+            </div>
+          </form>
+        </div>
+
+      </div>
+    </div>
+    <div class="modal fade" id="editDevice" tabindex="-1" role="dialog"
+         aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content" v-if="selectEditDevice">
+          <form method="post" action="{% url 'edit-device' %}">
+            {% csrf_token %}
+            <div class="modal-header">
+              <h5 class="modal-title" id="exampleModalLabel">Settings</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <div class="form-group row">
+                <label class="form-control-label col-sm-2">IP</label>
+                <div class="col-sm-10">
+                  <input type="hidden" name="id" :value="selectDevice.id">
+                  <input name="ip_address" type="text" placeholder="Ex. 192.168.1.1"
+                         class="form-control" v-model="editIpAddress" disabled>
+                </div>
+              </div>
+              <div class="form-group row">
+                <label class="form-control-label col-sm-2">Sitename</label>
+                <div class="col-sm-10">
+                  <input name="sitename" type="text" placeholder="Site name"
+                         class="form-control" v-model="sitename">
+                </div>
+              </div>
+              {% include 'discover/snmp_selector.html' %}
+
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              <button type="submit" class="btn btn-primary">Update</button>
+            </div>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </section>
+{% endblock %}
+
+{% block script %}
+  <script>
+      function ipComparator(a, b, modifier) {
+          a = a.split('.');
+          b = b.split('.');
+          for (let i = 0; i < a.length; i++) {
+              if ((a[i] = parseInt(a[i])) < (b[i] = parseInt(b[i])))
+                  return -1 * modifier;
+              else if (a[i] > b[i])
+                  return 1 * modifier;
+          }
+          return 0;
+      }
+
+      const app = new Vue({
+          el: '#app',
+          delimiters: ['${', '}'],
+          data: {
+              currentSort: 'ip',
+              currentSortDir: 'asc',
+              snmpVersion: 'v1',
+              editIpAddress: '',
+              snmpCommunity: '',
+              snmpUsername: '',
+              snmpPassword: '',
+              sitename: '',
+              selectDevice: null,
+              devices: {{ devices|default:"[]"|safe }},
+              selectEditDevice: null,
+              deleteDeviceIDSelected: 0,
+              baseDeleteDeviceURL: "{% url 'delete-device' 0 %}"
+          },
+          methods: {
+              sort: function (s) {
+                  //if s == current sort, reverse
+                  if (s === this.currentSort) {
+                      this.currentSortDir = this.currentSortDir === 'asc' ? 'desc' : 'asc';
+                  }
+                  this.currentSort = s;
+              },
+              setEditDevice: function (ip_address) {
+                  this.selectEditDevice = ip_address
+                  const ip = this.selectEditDevice
+                  const device = this.devices.find(function (device) {
+                      return device.ip_address === ip
+                  });
+                  this.snmpVersion = device.snmp_version
+                  this.snmpCommunity = device.snmp_community
+                  this.snmpUsername = device.snmp_username
+                  this.snmpPassword = device.snmp_password
+                  this.sitename = device.sitename
+
+                  this.editIpAddress = device.ip_address
+
+                  this.selectDevice = device;
+              },
+              setDeleteDevice: function (device_id) {
+                  this.deleteDeviceIDSelected = device_id
+              },
+              getViewDeviceURL(device_id) {
+                  return this.baseDeleteDeviceURL.replace(0, device_id)
+              }
+          },
+          computed: {
+              sortResult: function () {
+                  return this.devices.sort((a, b) => {
+                      let modifier = 1;
+                      if (this.currentSortDir === 'desc') modifier = -1;
+
+                      if (this.currentSort === 'ip') {
+                          return ipComparator(a.ip, b.ip, modifier)
+                      }
+
+                      if (a[this.currentSort] < b[this.currentSort]) return -1 * modifier;
+                      if (a[this.currentSort] > b[this.currentSort]) return 1 * modifier;
+                      return 0;
+
+                  });
+              }
+          }
+      });
+      console.log("Hi");
+  </script>
+{% endblock %}

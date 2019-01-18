@@ -1,0 +1,51 @@
+{% extends 'discover/base_printer.html' %}
+{% block content %}
+  <table class="table table-striped">
+    <thead>
+    <tr>
+      <th>Full name</th>
+      <th>Start Down time</th>
+      <th>Start Up time</th>
+      <th>Total time</th>
+    </tr>
+    </thead>
+    <tfoot>
+{#    <tr>#}
+{#      <td colspan="5">Total downtime: {{ total_downtime }} ({{ new_log|length }} events)</td>#}
+{#    </tr>#}
+{#    <tr>#}
+{#      <td colspan="5">Total downtime new: {{ total_downtime_new }}</td>#}
+{#    </tr>#}
+{#    <tr>#}
+{#      <td colspan="5">Generate on: {{ generate_time }}</td>#}
+{#    </tr>#}
+    </tfoot>
+    <tbody>
+    {% for log in new_log %}
+      <tr>
+        <td>{{ log.device.hostname }} - {{ log.description }}</td>
+        <td>{{ log.start_at }}</td>
+        <td>{{ log.end_at|default:'N/A' }}</td>
+        <td>{{ log.diff|default:'N/A' }}</td>
+      </tr>
+    {% endfor %}
+    {% for log in new_log %}
+      <tr>
+        <td>{{ log.device.hostname }} - {{ log.description }}</td>
+        <td>{{ log.start_at }}</td>
+        <td>{{ log.end_at|default:'N/A' }}</td>
+        <td>{{ log.diff|link.htmldefault:'N/A' }}</td>
+      </tr>
+    {% endfor %}
+    {% for log in new_log %}
+      <tr>
+        <td>{{ log.device.hostname }} - {{ log.description }}</td>
+        <td>{{ log.start_at }}</td>
+        <td>{{ log.end_at|default:'N/A' }}</td>
+        <td>{{ log.diff|default:'N/A' }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+
+  </table>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends 'discover/base_printer.html' %}
+{% block content %}
+  <table class="table table-sm table-striped">
+    <thead>
+    <tr>
+      <th>Hostname</th>
+      <th>Down time</th>
+      <th>Up time</th>
+      <th>Total time</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for log in items %}
+      <tr>
+        <td>{{ log.device.hostname }} ({{ log.device.ip_address }})</td>
+        <td>{{ log.start_at }}</td>
+        <td>{{ log.end_at|default:'N/A' }}</td>
+        <td>N/A</td>
+        {#                    <td>{{ |default:'N/A' }}</td>#}
+      </tr>
+    {% endfor %}
+    </tbody>
+    <tfoot>
+    <tr>
+      <td colspan="5">Total downtime: {{ total_downtime }}</td>
+    </tr>
+    <tr>
+      <td colspan="5">Generate on: {{ generate_time }}</td>
+    </tr>
+    </tfoot>
+  </table>
+{% endblock %}

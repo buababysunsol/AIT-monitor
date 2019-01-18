@@ -1,0 +1,78 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>{% block title %}Home{% endblock %} - AIT Monitor</title>
+  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="robots" content="all,follow">
+  <!-- Bootstrap CSS-->
+  <link rel="stylesheet" href="{% static 'network_monitor/vendor/bootstrap/css/bootstrap.min.css' %}">
+  <!-- Font Awesome CSS-->
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css"
+        integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.11/lodash.min.js"
+          integrity="sha256-7/yoZS3548fXSRXqc/xYzjsmuW3sFKzuvOCHd06Pmps=" crossorigin="anonymous"></script>
+  <!-- Fontastic Custom icon font-->
+  <link rel="stylesheet" href="{% static 'network_monitor/css/fontastic.css' %}">
+  <!-- Google fonts - Poppins -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins:300,400,700">
+  <!-- theme stylesheet-->
+  <link rel="stylesheet" href="{% static 'network_monitor/css/style.default.css' %}" id="theme-stylesheet">
+  <link rel="stylesheet" href="{% static 'network_monitor/css/flatpickr.min.css' %}" id="theme-stylesheet">
+  <!-- Custom stylesheet - for your changes-->
+  <link rel="stylesheet" href="{% static 'network_monitor/css/custom.css' %}">
+  <!-- Favicon-->
+  <link rel="shortcut icon" href="{% static 'network_monitor/img/favicon.ico' %}">
+  <!-- Tweaks for older IEs--><!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+        <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script><![endif]-->
+</head>
+<body>
+<div class="page">
+
+  <div class="page-content d-flex align-items-stretch">
+      {% block content %}
+
+      {% endblock %}
+
+      <!-- Page Footer-->
+{#      <footer class="main-footer">#}
+{#        <div class="container-fluid">#}
+{#          <div class="row">#}
+{#            <div class="col-sm-6">#}
+{#              <p>AIT &copy; 2017-2019</p>#}
+{#            </div>#}
+{#          </div>#}
+{#        </div>#}
+{#      </footer>#}
+    </div>
+  </div>
+</div>
+{% if debug %}
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+{% else %}
+  <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+{% endif %}
+
+<!-- JavaScript files-->
+
+<script src="{% static 'network_monitor/vendor/jquery/jquery.min.js' %}"></script>
+<script src="{% static 'network_monitor/vendor/popper.js/umd/popper.min.js' %}"></script>
+<script src="{% static 'network_monitor/vendor/bootstrap/js/bootstrap.min.js' %}"></script>
+<script src="{% static 'network_monitor/vendor/jquery.cookie/jquery.cookie.js' %}"></script>
+<script src="{% static 'network_monitor/vendor/chart.js/Chart.min.js' %}"></script>
+<script src="{% static 'network_monitor/vendor/jquery-validation/jquery.validate.min.js' %}"></script>
+<script src="{% static 'network_monitor/js/flatpickr.js' %}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.4.1/jspdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/2.3.5/jspdf.plugin.autotable.min.js"></script>
+{#<script src="{% static 'network_monitor/js/charts-home.js' %}"></script>#}
+<!-- Main File-->
+<script src="{% static 'network_monitor/js/front.js' %}"></script>
+
+{% block script %}{% endblock %}
+</body>
+</html>

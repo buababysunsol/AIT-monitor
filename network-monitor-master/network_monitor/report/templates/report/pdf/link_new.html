@@ -1,0 +1,75 @@
+{% extends 'discover/base_printer.html' %}
+{% block title %}Link downtime report{% endblock %}
+{% load date_helper %}
+{% block content %}
+  <table id="report" class="table table-striped">
+    <thead>
+    <tr>
+      <th>Full name</th>
+      <th>Start time</th>
+      <th>Final time</th>
+      <th>Status</th>
+      <th>Total time</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for item in interface_history %}
+      <tr>
+        <td>{{ item.device.hostname }} - {{ item.description }}</td>
+        <td>{{ item.start_at|default:'N/A' }}</td>
+        <td>{{ item.end_at|default:generate_time }}</td>
+        {% if item.status == 2 %}
+          <td><span class="badge badge-danger">DOWN</span></td>
+        {% else %}
+          <td><span class="badge badge-success">UP</span></td>
+        {% endif %}
+        <td>{{ item.end_at|default:generate_time|diff:item.start_at }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+    <tfoot>
+    <tr>
+      <td colspan="5">Generate on: {{ generate_time }}</td>
+    </tr>
+    </tfoot>
+  </table>
+{% endblock %}
+{% block script %}
+  <script>
+    var doc = new jsPDF('l');
+
+    var totalPagesExp = "{total_pages_count_string}";
+
+    doc.text("Link downtime report", 14, 16);
+
+    var pageContent = function (data) {
+      // FOOTER
+      var str = "Page " + data.pageCount;
+      // Total page number plugin only available in jspdf v1.0+
+      if (typeof doc.putTotalPages === 'function') {
+        str = str + " of " + totalPagesExp;
+      }
+      doc.setFontSize(10);
+      var pageHeight = doc.internal.pageSize.height || doc.internal.pageSize.getHeight();
+      doc.text(str, data.settings.margin.left, pageHeight - 10);
+    };
+
+    var elem = document.getElementById("report");
+    var res = doc.autoTableHtmlToJson(elem);
+    doc.autoTable(res.columns, res.data, {
+      addPageContent: pageContent,
+      startY: 20
+    });
+
+    // Total page number plugin only available in jspdf v1.0+
+    if (typeof doc.putTotalPages === 'function') {
+      doc.putTotalPages(totalPagesExp);
+    }
+    doc.save("report.pdf")
+    $(document).ready(function () {
+      $('#export-pdf').click(function () {
+        doc.save('Link downtime report - AIT Monitor-V2.pdf')
+      })
+    })
+  </script>
+{% endblock %}

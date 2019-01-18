@@ -1,0 +1,187 @@
+{% extends 'discover/base.html' %}
+{% load date_helper %}
+{% block title %}Report{% endblock %}
+{% block page_header %}Node downtime report{% endblock %}
+{% block navbar %}{% with active_tab='report' %}{{ block.super }}{% endwith %}{% endblock %}
+{% block content %}
+  <!-- Dashboard Counts Section-->
+  <section class="dashboard-counts no-padding" id="app">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-lg-12">
+          <div class="card">
+            <div class="card-header">
+              <form id="report-link-form">
+                <div class="form-row">
+                  <div class="form-group col-md-2">
+                    <label for="device">Device</label>
+                    <select class="form-control" id="device" name="device_id">
+                      <option value="" {% if not device_id %}selected{% endif %}>ALL</option>
+                      {% for device in devices %}
+                        <option value="{{ device.id }}"
+                                {% if device_id == device.id %}selected{% endif %}>{{ device.hostname }}
+                          ({{ device.ip_address }})
+                        </option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                  <div class="form-group col-md-2">
+                    <label for="start_time">Start time</label>
+                    <input type="text" name="start_time" class="form-control"
+                           value="{{ start_time|date:'Y-m-d'|default_if_none:'' }}">
+                  </div>
+                  <div class="form-group col-md-2">
+                    <label for="end_time">End time</label>
+                    <input type="text" name="end_time" class="form-control"
+                           value="{{ end_time|date:'Y-m-d'|default_if_none:'' }}">
+                  </div>
+                  <div class="form-group col-md-2">
+                    <label for="status">Status</label>
+                    <select class="form-control" id="status" name="status">
+                      <option value="" {% if not status %}selected{% endif %}>ALL</option>
+                      <option value="2" {% if status == "2" %}selected{% endif %}>DOWN</option>
+                      <option value="1" {% if status == "1" %}selected{% endif %}>UP</option>
+                      <option value="3" {% if status == "3" %}selected{% endif %}>TESTING</option>
+                    </select>
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Submit</button>
+                <button type="button" class="btn btn-primary" id="export">Export to excel</button>
+                <button type="button" class="btn btn-primary" id="export-pdf">Export to pdf</button>
+              </form>
+            </div>
+            <div class="card-body">
+              <table id="report" class="table table-sm table-striped">
+                <thead>
+                <tr>
+                  <th>Hostname</th>
+                  <th>Down time</th>
+                  <th>Up time</th>
+                  <th>Status</th>
+                  <th>Total time</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for item in items %}
+                  <tr>
+                    <td>{{ item.device.hostname }} ({{ item.device.ip_address }})</td>
+                    <td>{{ item.start_at }}</td>
+                    <td>{{ item.end_at|default_if_none:generate_time }}</td>
+                    {% if item.status == 2 %}
+                      <td><span class="badge badge-danger">DOWN</span></td>
+                    {% else %}
+                      <td><span class="badge badge-success">UP</span></td>
+                    {% endif %}
+                    <td>{{ item.end_at|default:generate_time|diff:item.start_at }}</td>
+                  </tr>
+                {% endfor %}
+                </tbody>
+                <tfoot>
+                <tr>
+                  <td colspan="5">Total downtime: {{ total_downtime_new }} ({{ items|length }} times)</td>
+                </tr>
+                <tr>
+                  <td colspan="5">Generate on: {{ generate_time }}</td>
+                </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock %}
+{% block script %}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.4.1/jspdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/2.3.5/jspdf.plugin.autotable.min.js"></script>
+  <script>
+    const d = new Date();
+    const exportFileName = "Node downtime report - " + d.getFullYear() + "/" + d.getMonth() + "/" + d.getDay() + " " + d.getHours() + "-" + d.getMinutes();
+
+    function downloadCSV(csv, filename) {
+      let csvFile;
+      let downloadLink;
+
+      // CSV file
+      csvFile = new Blob([csv], {type: "text/csv"});
+
+      // Download link
+      downloadLink = document.createElement("a");
+
+      // File name
+      downloadLink.download = filename;
+
+      // Create a link to the file
+      downloadLink.href = window.URL.createObjectURL(csvFile);
+
+      // Hide download link
+      downloadLink.style.display = "none";
+
+      // Add the link to DOM
+      document.body.appendChild(downloadLink);
+
+      // Click download link
+      downloadLink.click();
+    }
+
+    function exportTableToCSV(filename) {
+      let csv = [];
+
+      let rows = document.querySelectorAll("table tr");
+
+      for (let i = 0; i < rows.length; i++) {
+        let row = [], cols = rows[i].querySelectorAll("td, th");
+
+        for (let j = 0; j < cols.length; j++)
+          row.push(cols[j].innerText);
+
+        csv.push(row.join(","));
+      }
+
+      // Download CSV file
+      downloadCSV(csv.join("\n"), filename);
+      console.log(csv.join(("\n")))
+    }
+
+    $(document).ready(function () {
+      $('input[name="start_time"]').flatpickr();
+      $('input[name="end_time"]').flatpickr();
+      $('#export').click(function (event) {
+        exportTableToCSV(exportFileName + ".csv")
+      });
+      $('#export-pdf').click(function (event) {
+        let doc = new jsPDF('l');
+
+        let totalPagesExp = "{total_pages_count_string}";
+
+        doc.text("Link downtime report", 14, 16);
+
+        let pageContent = function (data) {
+          // FOOTER
+          let str = "Page " + data.pageCount;
+          // Total page number plugin only available in jspdf v1.0+
+          if (typeof doc.putTotalPages === 'function') {
+            str = str + " of " + totalPagesExp;
+          }
+          doc.setFontSize(10);
+          let pageHeight = doc.internal.pageSize.height || doc.internal.pageSize.getHeight();
+          doc.text(str, data.settings.margin.left, pageHeight - 10);
+        };
+
+        let elem = document.getElementById("report");
+        let res = doc.autoTableHtmlToJson(elem);
+        doc.autoTable(res.columns, res.data, {
+          addPageContent: pageContent,
+          startY: 20
+        });
+
+        // Total page number plugin only available in jspdf v1.0+
+        if (typeof doc.putTotalPages === 'function') {
+          doc.putTotalPages(totalPagesExp);
+        }
+        doc.save(exportFileName + ".pdf")
+      })
+    })
+  </script>
+{% endblock %}

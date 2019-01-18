@@ -1,0 +1,147 @@
+{% extends 'discover/base.html' %}
+{% block navbar %}{% with active_tab='search-device' %}{{ block.super }}{% endwith %}{% endblock %}
+{% block page_header %}Devices{% endblock %}
+{% block content %}
+  <!-- Dashboard Counts Section-->
+  <section class="dashboard-counts no-padding-bottom" id="app">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-lg-12">
+          <div class="card">
+            <div class="card-header"><h4>Search device</h4></div>
+            <div class="card-body">
+              <form method="post">
+                {% csrf_token %}
+              </form>
+              <p>
+              <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text" id="inputGroup-sizing-default">Search</span>
+                </div>
+                <input type="text" class="form-control" aria-label="Default"
+                       aria-describedby="inputGroup-sizing-default"
+                       placeholder="IP, Sitename, Status, ..." v-model="search">
+              </div>
+              </p>
+              <table class="table">
+                <thead>
+                <tr>
+                  <th>IP</th>
+                  <th>Sitename</th>
+                  <th>Hostname</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr v-for="device in filterDevices">
+                  <td class="align-middle">${device.ip_address}</td>
+                  <td class="align-middle">${device.sitename}</td>
+                  <td class="align-middle">${device.hostname}</td>
+                  <td class="align-middle">
+                    <h3>
+                      <span v-if="device.status === true" class="badge badge-success">Connect</span>
+                      <span v-else class="badge badge-danger">Not Connect</span>
+                    </h3>
+                  </td>
+                  <td class="align-middle">
+                    <div class="btn-group-vertical">
+                      <a :href="getViewDeviceURL(device.id)" class="btn btn-primary">
+                        <i class="fas fa-info-circle"></i>
+                        More info
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock %}
+
+{% block script %}
+  <script>
+      function ipComparator(a, b, modifier) {
+          a = a.split('.');
+          b = b.split('.');
+          for (let i = 0; i < a.length; i++) {
+              if ((a[i] = parseInt(a[i])) < (b[i] = parseInt(b[i])))
+                  return -1 * modifier;
+              else if (a[i] > b[i])
+                  return 1 * modifier;
+          }
+          return 0;
+      }
+
+      const app = new Vue({
+          el: '#app',
+          delimiters: ['${', '}'],
+          data: {
+              currentSort: 'ip',
+              currentSortDir: 'asc',
+              devices: {{ devices|default:"[]"|safe }},
+              filterDevices: [],
+              search: '',
+              baseViewDeviceURL: '{% url 'view-device' id=0%}'
+          },
+          methods: {
+              sort: function (s) {
+                  //if s == current sort, reverse
+                  if (s === this.currentSort) {
+                      this.currentSortDir = this.currentSortDir === 'asc' ? 'desc' : 'asc';
+                  }
+                  this.currentSort = s;
+              },
+              getViewDeviceURL(id) {
+                  return this.baseViewDeviceURL.replace(0, id)
+              }
+          },
+          computed: {
+              sortResult: function () {
+                  return this.devices.sort((a, b) => {
+                      let modifier = 1;
+                      if (this.currentSortDir === 'desc') modifier = -1;
+
+                      if (this.currentSort === 'ip') {
+                          return ipComparator(a.ip, b.ip, modifier)
+                      }
+
+                      if (a[this.currentSort] < b[this.currentSort]) return -1 * modifier;
+                      if (a[this.currentSort] > b[this.currentSort]) return 1 * modifier;
+                      return 0;
+
+                  });
+              }
+          },
+          watch: {
+              search: function (val) {
+                  if (val === '') {
+                      this.filterDevices = {...this.devices}
+                  } else {
+                      this.filterDevices = this.devices.filter(function (device) {
+                          for (let key in device) {
+                              if (device[key].toString().indexOf(val) >= 0) {
+                                  return true
+                              }
+                          }
+                          if (val === 'status:up') {
+                              return device['status'] === true
+                          } else if (val === 'status:down') {
+                              return device['status'] === false
+                          }
+                          return false
+                      })
+                  }
+              }
+          },
+          mounted() {
+              this.filterDevices = {...this.devices}
+          }
+      });
+      console.log("Hi");
+  </script>
+{% endblock %}

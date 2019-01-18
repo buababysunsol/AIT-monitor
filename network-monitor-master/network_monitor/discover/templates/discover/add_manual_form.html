@@ -1,0 +1,27 @@
+<div class="card" id="add-manual">
+    <div class="card-header d-flex align-items-center">
+        <h3 class="h4">Manual</h3>
+    </div>
+    <div class="card-body">
+        <form method="post" action="{% url 'device-add-manual' %}" class="form-horizontal">
+            <input type="hidden" name="add_type" value="manual">
+            {% csrf_token %}
+            <div class="form-group row">
+                <label class="form-control-label col-sm-2">IP</label>
+                <div class="col-sm-10">
+                    <input name="ip_address" type="text" placeholder="Ex. 192.168.1.1"
+                           class="form-control">
+                </div>
+            </div>
+            <div class="line"></div>
+
+            {% include 'discover/snmp_selector.html' %}
+
+            <div class="form-group row">
+                <div class="col-sm-4 offset-sm-2">
+                    <button type="submit" class="btn btn-primary">Add</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

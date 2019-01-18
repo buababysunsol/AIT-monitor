@@ -1,0 +1,305 @@
+{% extends 'discover/base.html' %}
+{% load static %}
+{% load to_percent %}
+{% block navbar %}{% with active_tab='device-network' %}{{ block.super }}{% endwith %}{% endblock %}
+{% block page_header %}Graph device{% endblock %}
+{% block content %}
+  <!-- Dashboard Counts Section-->
+  <section class="dashboard-counts no-padding-bottom" id="app">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-sm-12">
+          <div class="card">
+            <div class="card-header text-right">
+              <div class="row">
+                <div class="col-sm-12 ">
+                  <img width="16" height="16" class="image"
+                       src="{% static 'network_monitor/icon/router.png' %}"> Router
+                </div>
+                <div class="col-sm-12">
+                  <img width="16" height="16" class="image"
+                       src="{% static 'network_monitor/icon/router_down.png' %}"> Router Down
+                </div>
+                <div class="col-sm-12">
+                  <img width="16" height="16" class="image"
+                       src="{% static 'network_monitor/icon/switch.png' %}"> Switch
+                </div>
+                <div class="col-sm-12">
+                  <img width="16" height="16" class="image"
+                       src="{% static 'network_monitor/icon/switch_down.png' %}"> Switch Down
+                </div>
+                <div class="col-sm-12">
+                  <img width="16" height="16" class="image"
+                       src="{% static 'network_monitor/icon/unknown.png' %}"> Unknown device
+                </div>
+              </div>
+            </div>
+            <div class="card-body">
+              <div id="mynetwork" style="height: 80vh"></div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+{% endblock %}
+
+{% block script %}
+  <script>
+
+    const humanFileSize = (bytes, si) => {
+      const thresh = si ? 1000 : 1024;
+      if (Math.abs(bytes) < thresh) {
+        return bytes + ' B';
+      }
+      const units = si
+        ? ['Kbps', 'Mbps', 'Gbps', 'Tb', 'PB', 'EB', 'ZB', 'YB']
+        : ['KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'];
+      let u = -1;
+      do {
+        bytes /= thresh;
+        ++u;
+      } while (Math.abs(bytes) >= thresh && u < units.length - 1);
+      return bytes.toFixed(0) + ' ' + units[u];
+    };
+
+    const app = new Vue({
+      el: '#app',
+      delimiters: ['${', '}'],
+      data: {},
+    });
+
+    let devices = {{ devices|safe }};
+    let i = 0;
+
+    let counter = {
+      'router': 0,
+      'switch': 0,
+      'other': 0
+    };
+
+    const router_img_path = "{% static 'network_monitor/icon/router.png' %}";
+    const router_down_img_path = "{% static 'network_monitor/icon/router_down.png' %}";
+    const switch_img_path = "{% static 'network_monitor/icon/switch.png' %}";
+    const switch_down_img_path = "{% static 'network_monitor/icon/switch_down.png' %}";
+    const unknow_img_path = "{% static 'network_monitor/icon/unknown.png' %}";
+
+    devices.forEach(function (device) {
+      device.label = device.hostname;
+      if (device.is_down) {
+        device.color = 'red';
+        device.label = '[DOWN] ' + device.hostname;
+      }
+      device.shape = 'image';
+      if (device.is_router) {
+        if (device.is_down) {
+          device.image = router_down_img_path;
+        } else {
+          device.image = router_img_path;
+        }
+
+        counter.router++;
+      } else if (device.is_switch) {
+        if (device.is_down) {
+          device.image = switch_down_img_path;
+        } else {
+          device.image = switch_img_path;
+        }
+        counter.switch++;
+      } else {
+        device.image = unknow_img_path;
+        counter.router++;
+      }
+      return device
+    });
+
+    // create an array with nodes
+    const nodes = new vis.DataSet([
+      ...devices
+    ]);
+
+    let edges_ = [];
+    for (let i = 0, len = devices.length; i < len; i++) {
+      let device = devices[i];
+      // Device interface object key is index
+      let device_ifs = {};
+      for (let i2 = 0, len2 = device.interfaces.length; i2 < len2; i2++) {
+        let device_if = device.interfaces[i2];
+        {#console.log(device_if)#}
+        device_ifs[device_if.oid_index] = device_if;
+      }
+      for (let n = 0, lenCdp = device.neighbor.length; n < lenCdp; n++) {
+        let neighbor = device.neighbor[n];
+        let has_neighbor = false;
+        for (let j = 0; j < len; j++) {
+          let targetDevice = devices[j];
+          if (targetDevice.hostname === neighbor.remote_hostname) {
+            // Check interface is down
+            let is_down = false;
+            let speed = 0;
+            // Todo Optimize
+            targetDevice.interfaces.find(function (device_interface) {
+              if (neighbor.remote_port_description === device_interface.description) {
+                if (device_interface.status !== 1) {
+                  is_down = true;
+                }
+                speed = device_interface.speed;
+              }
+            });
+            if (!targetDevice.status || !device.status) {
+              is_down = true
+            }
+
+
+            // Check edge is already in edges_ ?
+            let edge = edges_.find(function (element) {
+              return (element.from === device.id && element.to === targetDevice.id) ||
+                (element.to === device.id && element.from === targetDevice.id)
+            });
+            if (edge) {
+              edge.is_down = is_down;
+              if (edge.speed > speed) {
+                edge.speed = speed;
+                edge.value = speed;
+                edge.label = humanFileSize(speed, true);
+              }
+              has_neighbor = true;
+              continue
+            }
+
+            let edgeTemp = {
+              from: device['id'],
+              to: targetDevice['id'],
+              is_down: is_down,
+              label: humanFileSize(speed, true),
+              font: {align: 'top'},
+              speed: speed,
+              value: speed,
+            };
+
+            if (is_down) {
+              edgeTemp.color = {color: 'red'}
+            }
+            edges_.push(edgeTemp);
+            has_neighbor = true;
+            break
+          }
+        }
+
+        // If not find neighbor in device list
+        if (!has_neighbor) {
+          let node = nodes.get(neighbor['remote_ip_address']);
+          if (!node) {
+            nodes.add({
+              id: neighbor['remote_ip_address'],
+              hostname: neighbor['remote_hostname'],
+              label: neighbor['remote_hostname'],
+              shape: "image",
+              image: unknow_img_path
+            });
+            counter.other++;
+          }
+          let device_if;
+          let is_down = true;
+          if (neighbor['local_if_index']) {
+            device_if = device_ifs[neighbor['local_if_index']];
+            console.log(device_if.status);
+            if (device_if.status !== 1) {
+              console.log(device['id'], neighbor['remote_ip_address'], device_if['status']);
+              is_down = true
+            } else {
+
+              is_down = false
+            }
+          }
+
+          // If node down
+          if (device['is_down']) {
+            is_down = true;
+          }
+
+          let edgeTemp = {
+            from: device['id'],
+            to: neighbor['remote_ip_address'],
+            is_down: is_down,
+            label: humanFileSize(100000, true),
+            font: {align: 'top'},
+            speed: 100000,
+            value: 100000,
+          };
+
+          if (device_if) {
+            edgeTemp['speed'] = device_if.speed;
+            edgeTemp['value'] = device_if.speed;
+            edgeTemp['label'] = humanFileSize(device_if.speed, true)
+          }
+
+          if (is_down) {
+            edgeTemp.color = {color: 'red'}
+          }
+          edges_.push(edgeTemp);
+        }
+      }
+    }
+    {#console.log(edges_);#}
+    // create an array with edges
+    const edges = new vis.DataSet([
+      ...edges_
+    ]);
+
+    // create a network
+    const container = document.getElementById('mynetwork');
+    const data = {
+      nodes: nodes,
+      edges: edges
+    };
+    const options = {
+      nodes: {
+        margin: 10,
+        widthConstraint: {
+          maximum: 120
+        }
+      },
+      edges: {
+        "smooth": {
+          "type": "discrete",
+          "forceDirection": "none"
+        },
+        width: 0.2
+      },
+      {#"physics": false#}
+      layout: {
+        randomSeed: 90
+      },
+      physics: {
+        forceAtlas2Based: {
+          gravitationalConstant: -26,
+          centralGravity: 0.0005,
+          springLength: 230,
+          springConstant: 0.18
+        },
+        maxVelocity: 146,
+        solver: 'forceAtlas2Based',
+        timestep: 0.35,
+        stabilization: {
+          enabled: true,
+          iterations: 2000,
+          updateInterval: 25
+        }
+      }
+    };
+    const network = new vis.Network(container, data, options);
+    network.on('click', function (properties) {
+      let ids = properties.nodes;
+      let clickedNodes = nodes.get(ids);
+      if (clickedNodes.length === 0) {
+        return
+      }
+      console.log('clicked nodes:', clickedNodes);
+      window.open("/device/" + clickedNodes[0].id);
+    });
+    console.log("Hi");
+  </script>
+{% endblock %}

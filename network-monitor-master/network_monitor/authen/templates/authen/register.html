@@ -1,0 +1,76 @@
+{% extends 'discover/base.html' %}
+{% block title %}User list{% endblock %}
+{% block page_header %}User list{% endblock %}
+{% block navbar %}{% with active_tab='account' %}{{ block.super }}{% endwith %}{% endblock %}
+{% block content %}
+  <section class="dashboard-counts no-padding" id="app">
+    <div class="container-fluid">
+      <div class="row justify-content-center">
+        <div class="col-sm-12 col-md-8">
+          <div class="card">
+            <div class="card-body">
+              <form method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                  <label for="username">Username</label>
+                  <input type="text" name="username" class="form-control" id="username" aria-describedby="usernameHelp"
+                         placeholder="Enter username" value="{{ form.username.data|default_if_none:"" }}">
+                  <small id="usernameHelp" class="form-text text-muted">Your Username.
+                  </small>
+                </div>
+                <div class="form-group">
+                  <label for="email">Email address</label>
+                  <input type="email" name="email" class="form-control" id="email" aria-describedby="emailHelp"
+                         placeholder="Enter email" value="{{ form.email.data|default_if_none:"" }}">
+                  <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.
+                  </small>
+                </div>
+                <div class="form-group">
+                  <label for="first_name">First name</label>
+                  <input type="text" name="first_name" id="first_name" aria-describedby="firstNameHelp"
+                         class="form-control"
+                         placeholder="First name" value="{{ form.first_name.data|default_if_none:"" }}">
+                  <small id="firstNameHelp" class="form-text text-muted">Your first name
+                  </small>
+                </div>
+                <div class="form-group">
+                  <label for="last_name">Last name</label>
+                  <input type="text" name="last_name" id="last_name" aria-describedby="lastNameHelp"
+                         class="form-control"
+                         placeholder="Last name" value="{{ form.last_name.data|default_if_none:"" }}">
+                  <small id="lastNameHelp" class="form-text text-muted">Your last name
+                  </small>
+                </div>
+                <div class="form-group">
+                  <label for="password">Password</label>
+                  <input type="password" name="password1" class="form-control" id="password"
+                         aria-describedby="passwordHelp"
+                         placeholder="Enter password">
+                  <small id="passwordHelp" class="form-text text-muted">Password
+                  </small>
+                </div>
+                <div class="form-group">
+                  <label for="confirm_password">Confirm Password</label>
+                  <input type="password" name="password2" class="form-control" id="confirm_password"
+                         aria-describedby="confirmPasswordHelp"
+                         placeholder="Enter confirm password">
+                  <small id="confirmPasswordHelp" class="form-text text-muted">Confirm Password
+                  </small>
+                </div>
+                <div class="form-group">
+                  <div class="custom-control custom-checkbox">
+                    <input type="checkbox" class="custom-control-input" name="is_superuser" id="is-superuser">
+                    <label class="custom-control-label" for="is-superuser">Superuser</label>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <button type="submit" class="btn btn-default">Register</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock %}

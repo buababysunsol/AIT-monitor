@@ -1,0 +1,93 @@
+{% extends 'discover/base.html' %}
+{% block title %}Report{% endblock %}
+{% block navbar %}{% with active_tab='report' %}{{ block.super }}{% endwith %}{% endblock %}
+{% block content %}
+  <!-- Dashboard Counts Section-->
+  <section class="dashboard-counts no-padding" id="app">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-lg-12">
+          <div class="card">
+            <div class="card-header">
+              <form id="report-link-form">
+                <div class="form-row">
+                  <div class="form-group col-md-2">
+                    <label for="device">Device</label>
+                    <select class="form-control" id="device" name="device_id">
+                      <option value="" {% if not device_id %}selected{% endif %}>ALL</option>
+                      {% for device in devices %}
+                        <option value="{{ device.id }}"
+                                {% if device_id == device.id %}selected{% endif %}>{{ device.hostname }}
+                          ({{ device.ip_address }})
+                        </option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                  <div class="form-group col-md-2">
+                    <label for="start_time">Start time</label>
+                    <input type="text" name="start_time" class="form-control"
+                           value="{{ start_time|default_if_none:'' }}">
+                  </div>
+                  <div class="form-group col-md-2">
+                    <label for="end_time">End time</label>
+                    <input type="text" name="end_time" class="form-control" value="{{ end_time|default_if_none:'' }}">
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Submit</button>
+                <button type="submit" class="btn btn-primary" id="export">Export to excel</button>
+              </form>
+            </div>
+            <div class="card-body">
+              <table class="table table-sm table-striped">
+                <thead>
+                <tr>
+                  <th>Full name</th>
+{#                  <th>Interface</th>#}
+                  <th>Start Down time</th>
+                  <th>Start Up time</th>
+                  <th>Total time</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for log in new_log %}
+                  <tr>
+                    <td>{{ log.device.hostname }} - {{ log.description }}</td>
+{#                    <td>{{ log.description }}</td>#}
+                    <td>{{ log.start_at }}</td>
+                    <td>{{ log.end_at|default:'N/A' }}</td>
+                    <td>{{ log.diff|default:'N/A' }}</td>
+                  </tr>
+                {% endfor %}
+                </tbody>
+                <tfoot>
+                <tr>
+                  <td colspan="5">Total downtime: {{ total_downtime }} ({{ new_log|length }} events)</td>
+                </tr>
+                <tr>
+                  <td colspan="5">Total downtime new: {{ total_downtime_new }}</td>
+                </tr>
+                <tr>
+                  <td colspan="5">Generate on: {{ generate_time }}</td>
+                </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock %}
+{% block script %}
+  <script>
+      $(document).ready(function () {
+          $('input[name="start_time"]').flatpickr()
+          $('input[name="end_time"]').flatpickr()
+          $('#export').click(function (event) {
+              event.preventDefault()
+              $('#report-link-form').attr('action', "{% url 'report-link-export' %}").submit()
+              $('#report-link-form').attr('action', "")
+          })
+      })
+  </script>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% load static %}
+<nav class="side-navbar">
+  <!-- Sidebar Header-->
+  <div class="sidebar-header d-flex align-items-center">
+    <div class="avatar"><img src="{% static 'network_monitor/icon/user.png' %}" alt="..."
+                             class="img-fluid rounded-circle"></div>
+    <div class="title">
+      <h1 class="h4">Hello, {{ user.first_name }}</h1>
+      <p>{{ user.email }}</p>
+    </div>
+  </div>
+  <!-- Sidebar Navidation Menus-->
+  <span class="heading">Main</span>
+  <ul class="list-unstyled">
+    {% if perms.device.add_device %}
+      <li class="{% if active_tab == 'discover' %} active{% endif %}"><a href="{% url 'discover-device' %}"> <i
+        class="icon-home"></i>Discover device </a></li>
+    {% endif %}
+    <li class="{% if active_tab == 'search-device' %} active{% endif %}"><a href="{% url 'search-device' %}"> <i
+      class="icon-search"></i>Search device </a></li>
+    {% if perms.device.change_device %}
+    <li class="{% if active_tab == 'device-list' %} active{% endif %}"><a href="{% url 'list-device' %}"> <i
+      class="fa fa-th-list"></i>List device </a></li>
+    {% endif %}
+    <li class="{% if active_tab == 'device-network' %} active{% endif %}"><a href="{% url 'device-network' %}"> <i
+      class="fa fa-desktop"></i>Network device </a></li>
+    <li class="{% if active_tab == 'report' %} active{% endif %}"><a href="{% url 'report-index' %}"> <i
+      class="fa fa-desktop"></i>Report </a></li>
+    {% if user.is_superuser %}
+      <li class="{% if active_tab == 'list-task' %} active{% endif %}"><a href="{% url 'list-task' %}"> <i
+        class="fa fa-tasks"></i>List of tasks</a></li>
+      <li class="{% if active_tab == 'account' %} active{% endif %}"><a href="{% url 'userlist' %}"> <i
+        class="fa fa-tasks"></i>User management</a></li>
+    {% endif %}
+    {% if perms.setting.change_settings %}
+      <li class="{% if active_tab == 'setting' %} active{% endif %}"><a href="{% url 'setting-index' %}"> <i
+        class="fa fa-cog"></i>Settings</a></li>
+    {% endif %}
+    <li class=""><a href="{% url 'logout' %}">Logout</a></li>
+  </ul>
+
+</nav>
